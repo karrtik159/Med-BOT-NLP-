@@ -72,7 +72,7 @@ for doc in documents:
 # shuffle our features and turn into np.array
 random.shuffle(training)
 #Important
-training = np.array(training)
+training = np.array(training,dtype=object)
 # create train and test lists. X - patterns, Y - intents
 train_x = list(training[:,0])
 train_y = list(training[:,1])
@@ -114,24 +114,23 @@ model.add(Dropout(0.5))
 model.add(Dense(len(train_y[0]), activation='softmax'))
 
 # Optimizer
-adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False)
+adam = Adam(lr=0.001, amsgrad=False)
 
 # Compile the model
 model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
 # Define callbacks
 # Define cyclic learning rate callback
-clr = CyclicLR(base_lr=0.001, max_lr=0.006, step_size=2000, mode='triangular')
 # learning_rate_scheduler = LearningRateScheduler(lambda epoch: 0.001 * (0.5 ** (epoch // 10)))  # Example learning rate schedule
-early_stopping = EarlyStopping(monitor='val_loss', patience=10, verbose=1, restore_best_weights=True)
-model_checkpoint = ModelCheckpoint('best_model.h5', monitor='val_loss', save_best_only=True)
+early_stopping = EarlyStopping(monitor='val_loss', patience=50, verbose=1, restore_best_weights=True)
+model_checkpoint = ModelCheckpoint('best_model.h5', monitor='accuracy', save_best_only=True)
 
 # Fit the model with callbacks
 hist = model.fit(np.array(train_x), np.array(train_y), 
-                 epochs=150, 
+                 epochs=500, 
                  batch_size=5, 
                  verbose=1, 
                  validation_split=0.2,  # Split your data into training and validation sets
-                 callbacks=[clr, early_stopping, model_checkpoint])
+                 callbacks=[ early_stopping, model_checkpoint])
 
 # Optionally save the final model
 model.save('final_model.h5')

@@ -6,6 +6,8 @@ import numpy as np
 
 from tensorflow.keras.models import load_model
 model = load_model('best_model.h5')
+# model = load_model('final_model.h5')
+
 import json
 import random
 intents = json.loads(open('intents.json', encoding="utf8").read())
@@ -39,20 +41,26 @@ def predict_class(sentence, model):
     # filter out predictions below a threshold
     p = bow(sentence, words,show_details=False)
     res = model.predict(np.array([p]))[0]
-    ERROR_THRESHOLD = 0.25
+    ERROR_THRESHOLD = 0.21
+    # print(p)
+    # print(res)
     results = [[i,r] for i,r in enumerate(res) if r>ERROR_THRESHOLD]
     # sort by strength of probability
     results.sort(key=lambda x: x[1], reverse=True)
     return_list = []
     for r in results:
         return_list.append({"intent": classes[r[0]], "probability": str(r[1])})
+    # print(return_list)
     return return_list
 
 def getResponse(ints, intents_json):
+    if not ints:
+        return "I'm sorry, I don't understand your question."
+    
     tag = ints[0]['intent']
     list_of_intents = intents_json['intents']
     for i in list_of_intents:
-        if(i['tag']== tag):
+        if i['tag'] == tag:
             result = random.choice(i['responses'])
             break
     return result
